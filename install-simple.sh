@@ -10,6 +10,11 @@ curl -fsSL https://get.docker.com | sh
 systemctl start docker
 systemctl enable docker
 
+# Остановка существующих контейнеров
+echo "🧹 Cleaning up existing containers..."
+docker stop n8n_postgres n8n_redis n8n_qdrant n8n_main n8n_portainer n8n_nginx n8n_caddy 2>/dev/null || true
+docker rm n8n_postgres n8n_redis n8n_qdrant n8n_main n8n_portainer n8n_nginx n8n_caddy 2>/dev/null || true
+
 # Создание папки проекта
 mkdir -p /root/n8n-automation-stack
 cd /root/n8n-automation-stack
@@ -21,13 +26,20 @@ POSTGRES_PASSWORD=$(openssl rand -base64 16 | tr -d /=+)
 N8N_PASSWORD=$(openssl rand -base64 12 | tr -d /=+)
 REDIS_PASSWORD=$(openssl rand -base64 16 | tr -d /=+)
 
-# Спросить домен у пользователя
-echo
-echo "🌐 Domain Configuration:"
-echo "1. Use domain name (recommended for auto SSL): your-domain.com"
-echo "2. Use IP address (self-signed certificate): ${SERVER_IP}"
-echo
-read -p "Enter your domain name (or press Enter to use IP): " USER_DOMAIN
+# Проверка интерактивного режима
+if [ -t 0 ]; then
+    # Интерактивный режим
+    echo
+    echo "🌐 Domain Configuration:"
+    echo "1. Use domain name (recommended for auto SSL): your-domain.com"
+    echo "2. Use IP address (self-signed certificate): ${SERVER_IP}"
+    echo
+    read -p "Enter your domain name (or press Enter to use IP): " USER_DOMAIN
+else
+    # Неинтерактивный режим
+    echo "⚡ Non-interactive mode: using IP address"
+    USER_DOMAIN=""
+fi
 
 if [ ! -z "$USER_DOMAIN" ]; then
     DOMAIN="$USER_DOMAIN"
