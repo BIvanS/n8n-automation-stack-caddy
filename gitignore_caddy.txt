@@ -1,0 +1,83 @@
+# Environment files
+.env
+.credentials
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+
+# Caddy data (certificates, configs, cache)
+caddy_data/
+caddy_config/
+
+# Docker volumes data
+postgres_data/
+redis_data/
+n8n_data/
+qdrant_data/
+portainer_data/
+
+# Logs
+*.log
+logs/
+access.log
+error.log
+
+# SSL certificates (if manually placed)
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Node modules (if any local development)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Python cache (if any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local development
+docker-compose.override.yml
+docker-compose.local.yml
+
+# OS generated files
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Terraform (if used for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Ansible (if used for configuration)
+*.retry
+
+# Local testing
+test-results/
+coverage/

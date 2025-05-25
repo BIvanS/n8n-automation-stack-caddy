@@ -1,0 +1,88 @@
+# Caddyfile для N8N Automation Stack
+# Automatic HTTPS with Let's Encrypt
+
+{$DOMAIN:localhost} {
+    # N8N - основное приложение
+    reverse_proxy n8n_main:5678 {
+        # WebSocket support for N8N
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection {http.request.header.Connection}
+        
+        # Proxy headers
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote.host}
+        header_up X-Forwarded-For {http.request.remote}
+        header_up X-Forwarded-Proto {http.request.scheme}
+    }
+
+    # Portainer - Docker management
+    handle /portainer/* {
+        uri strip_prefix /portainer
+        reverse_proxy n8n_portainer:9000 {
+            # WebSocket support for Portainer
+            header_up Upgrade {http.request.header.Upgrade}
+            header_up Connection {http.request.header.Connection}
+            
+            # Proxy headers
+            header_up Host {http.request.host}
+            header_up X-Real-IP {http.request.remote.host}
+            header_up X-Forwarded-For {http.request.remote}
+            header_up X-Forwarded-Proto {http.request.scheme}
+        }
+    }
+
+    # Qdrant Dashboard
+    handle /dashboard* {
+        reverse_proxy n8n_qdrant:6333 {
+            # CORS headers for Qdrant
+            header Access-Control-Allow-Origin "*"
+            header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+            header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+        }
+    }
+
+    # Qdrant API
+    handle /qdrant/* {
+        uri strip_prefix /qdrant
+        reverse_proxy n8n_qdrant:6333 {
+            # CORS headers for Qdrant API
+            header Access-Control-Allow-Origin "*"
+            header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+            header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+        }
+    }
+
+    # Health check endpoint
+    handle /health {
+        respond "healthy" 200
+    }
+
+    # Security headers
+    header {
+        # Security headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        
+        # Remove server info
+        -Server
+    }
+
+    # Logging
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+
+    # Rate limiting (optional)
+    rate_limit {
+        zone dynamic_rl {
+            key {remote_host}
+            events 100
+            window 1m
+        }
+    }
+}
